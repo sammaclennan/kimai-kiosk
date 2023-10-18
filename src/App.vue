@@ -2,9 +2,11 @@
 declare module "vue3-particles";
 import type { Container, Engine } from "tsparticles-engine";
 import { loadFull } from "tsparticles";
-import { onMounted } from 'vue';
+import { onMounted, onBeforeMount } from 'vue';
 import pconf from "./assets/particles.json"
 import { useKimaiStore } from './stores/kimai'
+
+let keyBuffer = ""
 
 const particlesInit = async (engine: Engine) => {
   await loadFull(engine);
@@ -18,17 +20,29 @@ const particlesLoaded = async (container: Container) => {
 
 const store = useKimaiStore();
 
-console.log(store.users)
 
-onMounted(() => {
-  document.body.classList.add('bg-black')
+onBeforeMount(() => {
   store.loadUsers()
   store.loadProjects()
   store.loadActivities()
 })
 
+onMounted(() => {
+  document.body.classList.add('bg-black')
+  
+})
+
 document.onkeydown = function (evt) {
-  console.log(evt)
+  if(!isNaN(evt.key)){
+    keyBuffer = keyBuffer.concat(evt.key)
+  }
+  if (evt.key == 'Enter'){
+    console.log(keyBuffer)
+    console.log(store.userMapping)
+    store.toggleTimesheetRecordState(+keyBuffer)
+    keyBuffer = ""
+  }
+  
 }
 
 import { ref } from 'vue'
@@ -50,7 +64,7 @@ const people = [
 
 const selected = ref(people[3])
 
-const selectedProject = ref(store.projects[0])
+
 </script>
 
 <template>
@@ -63,12 +77,12 @@ const selectedProject = ref(store.projects[0])
         <div class="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
           <p>Scan Card</p>
 
-          <Listbox as="div" v-model="selectedProject">
+          <Listbox as="div" v-model="store.selectedProject">
             <ListboxLabel class="block text-sm font-medium leading-6 text-gray-900">Project</ListboxLabel>
             <div class="relative mt-2">
               <ListboxButton
                 class="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                <span class="block truncate">{{ selectedProject.name }}</span>
+                <span class="block truncate">{{ store.selectedProject.name }}</span>
                 <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                   <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
                 </span>
@@ -97,12 +111,12 @@ const selectedProject = ref(store.projects[0])
           </Listbox>
 
 
-          <Listbox as="div" v-model="selected">
+          <Listbox as="div" v-model="store.selectedActivity">
             <ListboxLabel class="block text-sm font-medium leading-6 text-gray-900">Activity</ListboxLabel>
             <div class="relative mt-2">
               <ListboxButton
                 class="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                <span class="block truncate">{{ selected.name }}</span>
+                <span class="block truncate">{{ store.selectedActivity.name }}</span>
                 <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                   <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
                 </span>
@@ -113,13 +127,13 @@ const selectedProject = ref(store.projects[0])
                 <ListboxOptions
                   class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                   <ListboxOption as="template" v-for="activity in store.activities" :key="activity.id" :value="activity"
-                    v-slot="{ active, selected }">
+                    v-slot="{ active, selectedActivity }">
                     <li
                       :class="[active ? 'bg-indigo-600 text-white' : 'text-gray-900', 'relative cursor-default select-none py-2 pl-3 pr-9']">
-                      <span :class="[selected ? 'font-semibold' : 'font-normal', 'block truncate']">{{ activity.name
+                      <span :class="[selectedActivity ? 'font-semibold' : 'font-normal', 'block truncate']">{{ activity.name
                       }}</span>
 
-                      <span v-if="selected"
+                      <span v-if="selectedActivity"
                         :class="[active ? 'text-white' : 'text-indigo-600', 'absolute inset-y-0 right-0 flex items-center pr-4']">
                         <CheckIcon class="h-5 w-5" aria-hidden="true" />
                       </span>
