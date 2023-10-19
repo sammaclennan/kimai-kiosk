@@ -1,25 +1,24 @@
 <script setup lang="ts">
-declare module "vue3-particles";
-import type { Container, Engine } from "tsparticles-engine";
-import { loadFull } from "tsparticles";
-import { onMounted, onBeforeMount } from 'vue';
-import pconf from "./assets/particles.json"
+declare module 'vue3-particles'
+import type { Container, Engine } from 'tsparticles-engine'
+import { loadFull } from 'tsparticles'
+import { onMounted, onBeforeMount } from 'vue'
+import pconf from './assets/particles.json'
 import { useKimaiStore } from './stores/kimai'
 
-let keyBuffer = ""
+let keyBuffer = ''
 
 const particlesInit = async (engine: Engine) => {
-  await loadFull(engine);
+  await loadFull(engine)
 
-  console.log(engine);
-};
+  console.log(engine)
+}
 
 const particlesLoaded = async (container: Container) => {
-  console.log(container);
-};
+  console.log(container)
+}
 
-const store = useKimaiStore();
-
+const store = useKimaiStore()
 
 onBeforeMount(() => {
   store.loadUsers()
@@ -29,24 +28,32 @@ onBeforeMount(() => {
 
 onMounted(() => {
   document.body.classList.add('bg-black')
-  
 })
 
 document.onkeydown = function (evt) {
-  if(!isNaN(evt.key)){
+  if (!isNaN(evt.key)) {
     keyBuffer = keyBuffer.concat(evt.key)
   }
-  if (evt.key == 'Enter'){
+  if (evt.key == 'Enter') {
     console.log(keyBuffer)
     console.log(store.userMapping)
     store.toggleTimesheetRecordState(+keyBuffer)
-    keyBuffer = ""
+    keyBuffer = ''
   }
-  
+}
+
+function triggerActivityUpdate(){
+  store.loadActivities()
 }
 
 import { ref } from 'vue'
-import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
+import {
+  Listbox,
+  ListboxButton,
+  ListboxLabel,
+  ListboxOption,
+  ListboxOptions
+} from '@headlessui/vue'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/vue/20/solid'
 
 const people = [
@@ -59,48 +66,76 @@ const people = [
   { id: 7, name: 'Caroline Schultz' },
   { id: 8, name: 'Mason Heaney' },
   { id: 9, name: 'Claudie Smitham' },
-  { id: 10, name: 'Emil Schaefer' },
+  { id: 10, name: 'Emil Schaefer' }
 ]
 
 const selected = ref(people[3])
-
-
 </script>
 
 <template>
   <div>
-    <vue-particles id="tsparticles" :options="pconf" :particlesInit="particlesInit" :particlesLoaded="particlesLoaded" />
+    <vue-particles
+      id="tsparticles"
+      :options="pconf"
+      :particlesInit="particlesInit"
+      :particlesLoaded="particlesLoaded"
+    />
 
     <div class="flex min-h-full flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8">
-
-      <div class="mt-10 sm:mx-auto sm:w-full sm:min-w-[920px] ">
+      <div class="mt-10 sm:mx-auto sm:w-full sm:min-w-[920px]">
         <div class="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
           <p>Scan Card</p>
 
-          <Listbox as="div" v-model="store.selectedProject">
-            <ListboxLabel class="block text-sm font-medium leading-6 text-gray-900">Project</ListboxLabel>
+          <Listbox as="div" v-model="store.selectedProject" @update:model-value="triggerActivityUpdate">
+            <ListboxLabel class="block text-sm font-medium leading-6 text-gray-900"
+              >Project</ListboxLabel
+            >
             <div class="relative mt-2">
               <ListboxButton
-                class="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                class="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              >
                 <span class="block truncate">{{ store.selectedProject.name }}</span>
                 <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                   <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
                 </span>
               </ListboxButton>
 
-              <transition leave-active-class="transition ease-in duration-100" leave-from-class="opacity-100"
-                leave-to-class="opacity-0">
+              <transition
+                leave-active-class="transition ease-in duration-100"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+              >
                 <ListboxOptions
-                  class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                  <ListboxOption as="template" v-for="project in store.projects" :key="project.id" :value="project"
-                    v-slot="{ active, selectedProject }">
+                  class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+                >
+                  <ListboxOption
+                    as="template"
+                    v-for="project in store.projects"
+                    :key="project.id"
+                    :value="project"
+                    v-slot="{ active, selectedProject }"
+                  >
                     <li
-                      :class="[active ? 'bg-indigo-600 text-white' : 'text-gray-900', 'relative cursor-default select-none py-2 pl-3 pr-9']">
-                      <span :class="[selectedProject ? 'font-semibold' : 'font-normal', 'block truncate']">{{ project.name
-                      }}</span>
+                      :class="[
+                        active ? 'bg-indigo-600 text-white' : 'text-gray-900',
+                        'relative cursor-default select-none py-2 pl-3 pr-9'
+                      ]"
+                    >
+                      <span
+                        :class="[
+                          selectedProject ? 'font-semibold' : 'font-normal',
+                          'block truncate'
+                        ]"
+                        >{{ project.name }}</span
+                      >
 
-                      <span v-if="selectedProject"
-                        :class="[active ? 'text-white' : 'text-indigo-600', 'absolute inset-y-0 right-0 flex items-center pr-4']">
+                      <span
+                        v-if="selectedProject"
+                        :class="[
+                          active ? 'text-white' : 'text-indigo-600',
+                          'absolute inset-y-0 right-0 flex items-center pr-4'
+                        ]"
+                      >
                         <CheckIcon class="h-5 w-5" aria-hidden="true" />
                       </span>
                     </li>
@@ -110,42 +145,111 @@ const selected = ref(people[3])
             </div>
           </Listbox>
 
-
           <Listbox as="div" v-model="store.selectedActivity">
-            <ListboxLabel class="block text-sm font-medium leading-6 text-gray-900">Activity</ListboxLabel>
+            <ListboxLabel class="block text-sm font-medium leading-6 text-gray-900"
+              >Activity</ListboxLabel
+            >
             <div class="relative mt-2">
               <ListboxButton
-                class="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                class="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              >
                 <span class="block truncate">{{ store.selectedActivity.name }}</span>
                 <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                   <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
                 </span>
               </ListboxButton>
 
-              <transition leave-active-class="transition ease-in duration-100" leave-from-class="opacity-100"
-                leave-to-class="opacity-0">
+              <transition
+                leave-active-class="transition ease-in duration-100"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+              >
                 <ListboxOptions
-                  class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                  <ListboxOption as="template" v-for="activity in store.activities" :key="activity.id" :value="activity"
-                    v-slot="{ active, selectedActivity }">
+                  class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+                >
+                  <ListboxOption
+                    as="template"
+                    v-for="activity in store.activities"
+                    :key="activity.id"
+                    :value="activity"
+                    v-slot="{ active, selectedActivity }"
+                  >
                     <li
-                      :class="[active ? 'bg-indigo-600 text-white' : 'text-gray-900', 'relative cursor-default select-none py-2 pl-3 pr-9']">
-                      <span :class="[selectedActivity ? 'font-semibold' : 'font-normal', 'block truncate']">{{ activity.name
-                      }}</span>
+                      :class="[
+                        active ? 'bg-indigo-600 text-white' : 'text-gray-900',
+                        'relative cursor-default select-none py-2 pl-3 pr-9'
+                      ]"
+                    >
+                      <span
+                        :class="[
+                          selectedActivity ? 'font-semibold' : 'font-normal',
+                          'block truncate'
+                        ]"
+                        >{{ activity.name }}</span
+                      >
 
-                      <span v-if="selectedActivity"
-                        :class="[active ? 'text-white' : 'text-indigo-600', 'absolute inset-y-0 right-0 flex items-center pr-4']">
+                      <span
+                        v-if="selectedActivity"
+                        :class="[
+                          active ? 'text-white' : 'text-indigo-600',
+                          'absolute inset-y-0 right-0 flex items-center pr-4'
+                        ]"
+                      >
                         <CheckIcon class="h-5 w-5" aria-hidden="true" />
                       </span>
-                  </li>
-                </ListboxOption>
-              </ListboxOptions>
-            </transition>
+                    </li>
+                  </ListboxOption>
+                </ListboxOptions>
+              </transition>
+            </div>
+          </Listbox>
+          <div>
+            <label for="email" class="block text-sm font-medium leading-6 text-gray-900"
+              >Kimai Server URL</label
+            >
+            <div class="mt-2">
+              <input
+              v-model="store.API_URL"
+                type="url"
+                name="url"
+                id="url"
+                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                placeholder=""
+              />
+            </div>
           </div>
-        </Listbox>
+          <div>
+            <label for="email" class="block text-sm font-medium leading-6 text-gray-900"
+              >Kimai Auth ID</label
+            >
+            <div class="mt-2">
+              <input
+                v-model="store.axiosConfig.headers['X-AUTH-USER']"
+                type="text"
+                name="auth_id"
+                id="auth_id"
+                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                placeholder=""
+              />
+            </div>
+          </div>
+          <div>
+            <label for="email" class="block text-sm font-medium leading-6 text-gray-900"
+              >Kimai Auth Token</label
+            >
+            <div class="mt-2">
+              <input
+              v-model="store.axiosConfig.headers['X-AUTH-TOKEN']"
+                type="password"
+                name="auth_token"
+                id="auth_token"
+                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                placeholder=""
+              />
+            </div>
+          </div>
+        </div>
       </div>
-
     </div>
   </div>
-
-</div></template>
+</template>
