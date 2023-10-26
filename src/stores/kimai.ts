@@ -10,15 +10,18 @@ export const useKimaiStore = defineStore(
     const projects = ref([])
     const activities = ref([])
     const activeRecords = ref([])
+    const showDialog = ref(false)
+    const dialogTitle = ref("")
+    const dialogName = ref("")
 
     const selectedProject = ref([])
     const selectedActivity = ref([])
 
     const API_URL = ref('')
 
-
     const currentlyRunningRecords = {}
     const userMapping = {}
+    const userNameMappings = {}
 
 
     const axiosConfig = ref({
@@ -36,8 +39,10 @@ export const useKimaiStore = defineStore(
         if (res.status === 200) {
           Object.keys(res.data).forEach((element) => {
             userMapping[res.data[element].accountNumber] = res.data[element].id
+            userNameMappings[res.data[element].id] = res.data[element].alias
           })
         }
+        console.log("USERMAPPINGS", userMapping)
       } catch (err) {
         console.log(err)
       }
@@ -70,18 +75,24 @@ export const useKimaiStore = defineStore(
           billable: true
         }
         const res = await axios.post(`${API_URL.value}/api/timesheets`, data, axiosConfig.value)
+        if (res.status === 200){
+          showConfirmationDialog(userId, "Sign-In")
+        }
         return res.data
       } catch (err) {
         console.log(err)
       }
     }
 
-    async function endTimesheetRecord(recordId: Number) {
+    async function endTimesheetRecord(recordId: Number, userId: Number) {
       try {
         const res = await axios.get(
           `${API_URL.value}/api/timesheets/${recordId}/stop`,
           axiosConfig.value
         )
+        if (res.status === 200){
+          showConfirmationDialog(userId, "Sign-Out")
+        }
       } catch (err) {
         console.log(err)
       }
@@ -89,10 +100,11 @@ export const useKimaiStore = defineStore(
 
     async function toggleTimesheetRecordState(userAccNumber: Number) {
       let userId = userMapping[userAccNumber]
+      console.log("USERID", userAccNumber)
       let runningRecord = await getUnfinishedTimesheetRecord(userId)
       if (runningRecord) {
         console.log("RUNNING",runningRecord)
-        endTimesheetRecord(runningRecord['id'])
+        endTimesheetRecord(runningRecord['id'], userId)
       } else {
         console.log(this.selectedActivity)
         console.log(this.selectedProject)
@@ -108,6 +120,14 @@ export const useKimaiStore = defineStore(
       return res.data[0]
     }
 
+    async function showConfirmationDialog(userId, targetState){
+      dialogName.value = userNameMappings[userId]
+      dialogTitle.value = targetState
+      showDialog.value = true
+      setTimeout(() => {
+        showDialog.value = false
+      }, 3000)
+    }
     return {
       userMapping,
       currentlyRunningRecords,
@@ -123,7 +143,10 @@ export const useKimaiStore = defineStore(
       toggleTimesheetRecordState,
       API_URL,
       axiosConfig,
-      getUnfinishedTimesheetRecord
+      getUnfinishedTimesheetRecord,
+      showDialog,
+      dialogName,
+      dialogTitle
 
     }
   },
