@@ -1,4 +1,5 @@
 # Kimai Kiosk
+### Undocumented - Not currently suitable for general use - open an issue if you need this and I will prioritise this project.
 
 Kimai Kiosk is a kiosk client for Kimai, suited to fixed-station sign-on using a barcode scanner.
 
